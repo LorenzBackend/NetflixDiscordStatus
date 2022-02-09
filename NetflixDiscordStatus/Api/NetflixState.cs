@@ -28,7 +28,7 @@ namespace NetflixDiscordStatus.Api
         {
             try
             {
-                client = new DiscordRpcClient("ClientId");
+                client = new DiscordRpcClient("940447627282104330");
                 client.Initialize();
                 Thread th = new Thread(CheckForNewState);
                 th.Start();
@@ -137,7 +137,7 @@ namespace NetflixDiscordStatus.Api
                 Buttons = new Button[]
                 {
                     new Button() { Label = "Watch " + GetButtonText(detail, state), Url = GetMovieUrl()},
-                    new Button() { Label = "GET THE APP", Url = "https://github.com/lrnzcode/NetflixDiscordStatus/releases/tag/Release"}
+                    new Button() { Label = "GET THE APP", Url = main.ReleasesUrl}
                 }
 
             });
