@@ -18,8 +18,12 @@ namespace NetflixDiscordStatus
 {
     //NetflixDiscordStatus by LrnzCode
     //https://github.com/lrnzcode/NetflixDiscordStatus
+
     public partial class main : Form
     {
+        private static string currentVersion = "v1.0.4\n";
+        public static string ReleasesUrl = "https://github.com/lrnzcode/NetflixDiscordStatus/releases";
+
         public main()
         {
             InitializeComponent();
@@ -27,7 +31,6 @@ namespace NetflixDiscordStatus
             MyEventHandler.onUnexpectedError += onExpectedError;
         }
 
-        private static string currentVersion = "v1.0.2\n";
         private void main_Load(object sender, EventArgs e)
         {
             CheckUpdate();
@@ -44,10 +47,10 @@ namespace NetflixDiscordStatus
                
                 if (!currentVersion.Equals(version)) 
                 {
-                    DialogResult result = MessageBox.Show("NetflixDiscordStatus has a new update do you want to download the new version now?", "Update", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                    DialogResult result = MessageBox.Show("NetflixDiscordStatus has a new update do you want to download the new version now?", "Update", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
                     if (result == DialogResult.Yes)
                     {
-                        Process.Start("https://github.com/lrnzcode/NetflixDiscordStatus/releases");
+                        Process.Start(ReleasesUrl);
                         Environment.Exit(0);
                     }
                 }
