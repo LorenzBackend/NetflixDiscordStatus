@@ -16,6 +16,8 @@ using System.Windows.Forms;
 
 namespace NetflixDiscordStatus
 {
+    //NetflixDiscordStatus by LrnzCode
+    //https://github.com/lrnzcode/NetflixDiscordStatus
     public partial class main : Form
     {
         public main()
@@ -105,8 +107,6 @@ namespace NetflixDiscordStatus
                     remeber.Show();
 
                     if (Settings.Default.runInback) this.Hide();
-
-                    NetflixState.Init();
                 }
                 else
                 {
