@@ -1,174 +1,219 @@
-using DiscordRPC;
+using NetflixDiscordStatus.Api;
 using NetflixDiscordStatus.Misc;
-using OpenQA.Selenium;
+using NetflixDiscordStatus.Properties;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
-namespace NetflixDiscordStatus.Api
+namespace NetflixDiscordStatus
 {
     //NetflixDiscordStatus by LrnzCode
     //https://github.com/lrnzcode/NetflixDiscordStatus
-    public class NetflixState
+
+    public partial class main : Form
     {
-        private static DiscordRpcClient client;
-        private static string[] states = { "Browse the Netflix world" };
-        private static RpcState currentState;
-        private static string currentMovie = "";
-        private enum RpcState
+        private static string currentVersion = "v1.0.5\n";
+        public static string ReleasesUrl = "https://github.com/lrnzcode/NetflixDiscordStatus/releases";
+
+        public main()
         {
-            Browse,
-            Move,
-            Series
+            InitializeComponent();
+            MyEventHandler.onInitResult += onInitResult;
+            MyEventHandler.onUnexpectedError += onExpectedError;
         }
-        public static void Init()
+
+        private void main_Load(object sender, EventArgs e)
+        {
+            CheckUpdate();
+
+            Thread th = new Thread(Init);
+            th.Start();
+        }
+
+        private void CheckUpdate()
         {
             try
             {
-                client = new DiscordRpcClient("940447627282104330");
-                client.Initialize();
-                SetBrowseState();
-
-                Thread th = new Thread(CheckForNewState);
-                th.Start();
+                string version = new WebClient().DownloadString("https://raw.githubusercontent.com/lrnzcode/NetflixDiscordStatus/master/version");
+               
+                if (!currentVersion.Equals(version)) 
+                {
+                    DialogResult result = MessageBox.Show("NetflixDiscordStatus has a new update do you want to download the new version now?", "Update", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+                    if (result == DialogResult.Yes)
+                    {
+                        Process.Start(ReleasesUrl);
+                        Environment.Exit(0);
+                    }
+                }
             }
             catch (Exception ex)
             {
-                MyEventHandler.SendUnexpectedError(ex.Message);
+                MessageBox.Show(ex.Message, "Update Check Failed");
             }
         }
 
-        private static void SetBrowseState()
+        private static bool IsProcessRunning(string name)
         {
-            currentState = RpcState.Browse;
-            currentMovie = "";
-            client.SetPresence(new RichPresence()
+            foreach (Process proc in Process.GetProcesses())
             {
-                State = "",
-                Details = states[0],
-                Timestamps = Timestamps.Now,
-                Assets = new Assets()
+                if (proc.ProcessName.Contains(name))
                 {
-                    LargeImageKey = "app_icon"
-                },
-                Buttons = new Button[]
-                {
-                    new Button() { Label = "GET THE APP", Url = "https://github.com/lrnzcode/NetflixDiscordStatus/releases" }
-                }       
-            });
+                    return true;
+                }
+            }
+            return false;
         }
 
-        private static void CheckForNewState()
+        private void Init()
         {
-            while (true)
+            BeginInvoke(new Action(() =>
             {
-                Thread.Sleep(250);
-
-                IWebElement sTitle = Core.FindElementWhenExists(By.CssSelector("#appMountPoint > div > div > div.watch-video > div > div > div.ltr-1420x7p > div.watch-video--bottom-controls-container.ltr-hpbgml > div > div > div.ltr-1bt0omd > div > div.ltr-1fkysoc > div.medium.ltr-qnht66 > h4"));
-                IWebElement subTitle = Core.FindElementWhenExists(By.CssSelector("div > div.watch-video--bottom-controls-container.ltr-hpbgml > div > div > div.ltr-1bt0omd > div > div.ltr-1fkysoc > div.medium.ltr-qnht66 > span:nth-child(2)"));
-                IWebElement movieTitle = Core.FindElementWhenExists(By.CssSelector("#appMountPoint > div > div > div.watch-video > div > div > div.ltr-1420x7p > div.watch-video--bottom-controls-container.ltr-hpbgml > div > div > div.ltr-1bt0omd > div > div.ltr-1fkysoc > div.medium.ltr-qnht66"));
-
-                if (sTitle == null && subTitle == null && movieTitle == null)
+                if (IsProcessRunning("chrome") || IsProcessRunning("chromedriver"))
                 {
-                    if (Core.GetUrl().Contains("/browse") && currentState != RpcState.Browse) SetBrowseState();
+                    DialogResult result = MessageBox.Show("Google Chrome or the Chrome driver must be closed, should Chrome be closed now?", "Google Chrome is Running", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                    if (result == DialogResult.Yes)
+                    {
+                        ShutdownDriver();
+                    }
+                    else
+                    {
+                        lblState.Text = "Close Google Chrome and try again";
+                        btnRetry.Show();
+                        return;
+                    }
                 }
 
-                if (sTitle != null && subTitle != null)
+                Thread.Sleep(100);
+                Core.CheckNetflixPorifle();
+            }));
+        }
+
+        private void onInitResult(string message, bool success)
+        {
+            BeginInvoke(new Action(() =>
+            {
+                lblState.Text = message;
+
+                if (success)
                 {
-                    try
-                    {
-                        string titleText = sTitle.Text;
-                        string subTitleText = subTitle.Text;
+                    btnRetry.Hide();
+                    btnHide.Show();
+                    remeber.Show();
 
-                        if (titleText.Length > 32) titleText = titleText.Substring(0, 32);
-                        if (subTitleText.Length > 32) subTitleText = subTitleText.Substring(0, 32);
-
-                        currentState = RpcState.Series;
-                        UpdateState(titleText, subTitleText);
-                    }
-                    catch
-                    {
-                        //hm i dont know... do nothing
-                    }
-
+                    if (Settings.Default.runInback) this.Hide();
                 }
                 else
                 {
-                    if (movieTitle != null)
-                    {
-                        try
-                        {
-                            string movieTitleText = movieTitle.Text;
-                            if (movieTitleText.Length > 32) movieTitleText = movieTitleText.Substring(0, 32);
-                            currentState = RpcState.Move;
-                            UpdateState("Watching", movieTitleText);
-                        }
-                        catch
-                        {
-                            //hm i dont know... do nothing
-                        }
-             
-                    }
-                }
-            }
-        }
-
-        public static void UpdateState(string detail, string state)
-        {
-            if (currentState == RpcState.Move && state == currentMovie) return;
-            if (currentState == RpcState.Series && state == currentMovie) return;
-
-            if (currentState == RpcState.Move) currentMovie = detail;
-            if (currentState == RpcState.Series) currentMovie = state;
-
-            client.UpdateState(state);
-            client.UpdateDetails(detail);
-
-            client.SetPresence(new RichPresence()
-            {
-                State = state,
-                Details = detail,
-                Timestamps = Timestamps.Now,
-                Assets = new Assets()
-                {
-                    LargeImageKey = "app_icon"
-                },
-                Buttons = new Button[]
-                {
-                    new Button() { Label = "Watch " + GetButtonText(detail, state), Url = GetMovieUrl()},
-                    new Button() { Label = "GET THE APP", Url = main.ReleasesUrl}
+                    ShutdownDriver();
+                    btnRetry.Show();
                 }
 
-            });
+            }));
         }
 
-        private static string GetButtonText(string detail, string state)
+        private void onExpectedError(string message)
         {
-            if (currentState == RpcState.Series)
+            ShutdownDriver();
+            BeginInvoke(new Action(() =>
             {
-                return detail;
-            }
-            else
-            {
-                return state;
-            }
-        }
-        private static string GetMovieUrl()
-        {
-            string url = Core.GetUrl();
-            int index = url.IndexOf("?");
-            return url.Substring(0, index);
+                ShutdownDriver();
+                remeber.Hide();
+                btnHide.Hide();
+                btnRetry.Show();
+                lblState.Text = message;
+            }));
         }
 
-        public static void Shutdown()
+        private void btnHide_Click(object sender, EventArgs e)
         {
-            if (client != null)
+            if (remeber.Checked)
             {
-                client.Dispose();
+                Settings.Default.runInback = true;
+                Settings.Default.Save();
             }
+
+            this.Hide();
+        }
+
+        private void btnRetry_Click(object sender, EventArgs e)
+        {
+            Init();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            CloseApp();
+        }
+
+        private void ShutdownDriver()
+        {
+            try
+            {
+                Process process = new Process();
+                ProcessStartInfo startInfo = new ProcessStartInfo();
+                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                startInfo.FileName = "cmd.exe";
+                startInfo.Arguments = "/C taskkill /IM chromedriver.exe /f";
+                process.StartInfo = startInfo;
+                process.Start();
+
+
+                Process process2 = new Process();
+                ProcessStartInfo startInfo2 = new ProcessStartInfo();
+                startInfo2.WindowStyle = ProcessWindowStyle.Hidden;
+                startInfo2.FileName = "cmd.exe";
+                startInfo2.Arguments = "/C taskkill /IM chrome.exe /f";
+                process2.StartInfo = startInfo2;
+                process2.Start();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Shutdown Driver", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+        private void CloseApp()
+        {
+            NetflixState.Shutdown();
+            ShutdownDriver();
+            Environment.Exit(0);
+        }
+
+        private void pictureBox2_Click(object sender, EventArgs e)
+        {
+            Process.Start("https://www.google.com/chrome/");
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            CloseApp();
+        }
+
+        private void openToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.Show();
+        }
+
+        private void resetAutoBackgrorundToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Settings.Default.runInback = false;
+            Settings.Default.Save();
+            remeber.Show();
+            btnHide.Show();
+            this.Show();
+        }
+
+        private void lblState_MouseHover(object sender, EventArgs e)
+        {
+            toolTip1.Show(lblState.Text, lblState);
         }
     }
 }
