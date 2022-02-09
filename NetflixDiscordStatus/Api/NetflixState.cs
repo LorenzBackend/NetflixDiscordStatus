@@ -28,7 +28,7 @@ namespace NetflixDiscordStatus.Api
         {
             try
             {
-                client = new DiscordRpcClient("940447627282104330");
+                client = new DiscordRpcClient("ClientId");
                 client.Initialize();
                 SetBrowseState();
 
