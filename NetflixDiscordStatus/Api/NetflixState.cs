@@ -1,4 +1,4 @@
-﻿using DiscordRPC;
+using DiscordRPC;
 using NetflixDiscordStatus.Misc;
 using OpenQA.Selenium;
 using System;
@@ -26,7 +26,7 @@ namespace NetflixDiscordStatus.Api
         {
             try
             {
-                client = new DiscordRpcClient("940447627282104330");
+                client = new DiscordRpcClient("ClientId");
                 client.Initialize();
                 SetBrowseState();
                 Thread th = new Thread(CheckForNewState);
@@ -41,6 +41,7 @@ namespace NetflixDiscordStatus.Api
         private static void SetBrowseState()
         {
             currentState = RpcState.Browse;
+            currentMovie = "";
             client.SetPresence(new RichPresence()
             {
                 State = "",
@@ -50,6 +51,10 @@ namespace NetflixDiscordStatus.Api
                 {
                     LargeImageKey = "app_icon"
                 },
+                Buttons = new Button[]
+                {
+                    new Button() { Label = "GET THE APP", Url = "https://github.com/lrnzcode/NetflixDiscordStatus/releases" }
+                }       
             });
         }
 
@@ -70,23 +75,39 @@ namespace NetflixDiscordStatus.Api
 
                 if (sTitle != null && subTitle != null)
                 {
-                    string titleText = sTitle.Text;
-                    string subTitleText = subTitle.Text;
+                    try
+                    {
+                        string titleText = sTitle.Text;
+                        string subTitleText = subTitle.Text;
 
-                    if (titleText.Length > 32) titleText = titleText.Substring(0, 32);
-                    if (subTitleText.Length > 32) subTitleText = subTitleText.Substring(0, 32);
+                        if (titleText.Length > 32) titleText = titleText.Substring(0, 32);
+                        if (subTitleText.Length > 32) subTitleText = subTitleText.Substring(0, 32);
 
-                    currentState = RpcState.Series;
-                    UpdateState(titleText, subTitleText);
+                        currentState = RpcState.Series;
+                        UpdateState(titleText, subTitleText);
+                    }
+                    catch
+                    {
+                        //hm i dont know... do nothing
+                    }
+
                 }
                 else
                 {
                     if (movieTitle != null)
                     {
-                        string movieTitleText = movieTitle.Text;
-                        if (movieTitleText.Length > 32) movieTitleText = movieTitleText.Substring(0, 32);
-                        currentState = RpcState.Move;
-                        UpdateState("Watching", movieTitleText);
+                        try
+                        {
+                            string movieTitleText = movieTitle.Text;
+                            if (movieTitleText.Length > 32) movieTitleText = movieTitleText.Substring(0, 32);
+                            currentState = RpcState.Move;
+                            UpdateState("Watching", movieTitleText);
+                        }
+                        catch
+                        {
+                            //hm i dont know... do nothing
+                        }
+             
                     }
                 }
             }
@@ -95,10 +116,10 @@ namespace NetflixDiscordStatus.Api
         public static void UpdateState(string detail, string state)
         {
             if (currentState == RpcState.Move && state == currentMovie) return;
-            if (currentState == RpcState.Series && detail == currentMovie) return;
+            if (currentState == RpcState.Series && state == currentMovie) return;
 
-            if (currentState == RpcState.Move) currentMovie = state;
-            if (currentState == RpcState.Series) currentMovie = detail;
+            if (currentState == RpcState.Move) currentMovie = detail;
+            if (currentState == RpcState.Series) currentMovie = state;
 
             client.UpdateState(state);
             client.UpdateDetails(detail);
@@ -114,13 +135,24 @@ namespace NetflixDiscordStatus.Api
                 },
                 Buttons = new Button[]
                 {
-                    new Button() { Label = "Watch " + detail, Url = GetMovieUrl() }
+                    new Button() { Label = "Watch " + GetButtonText(detail, state), Url = GetMovieUrl()},
+                    new Button() { Label = "GET THE APP", Url = "https://github.com/lrnzcode/NetflixDiscordStatus/releases/tag/Release"}
                 }
 
             });
-
         }
 
+        private static string GetButtonText(string detail, string state)
+        {
+            if (currentState == RpcState.Series)
+            {
+                return detail;
+            }
+            else
+            {
+                return state;
+            }
+        }
         private static string GetMovieUrl()
         {
             string url = Core.GetUrl();
