@@ -11,6 +11,9 @@ namespace NetflixDiscordStatus.Api
 {
     public class Core
     {
+        //NetflixDiscordStatus by LrnzCode
+        //https://github.com/lrnzcode/NetflixDiscordStatus
+
         public static IWebDriver driver;
         private static WebDriverWait wait;
 
@@ -39,6 +42,7 @@ namespace NetflixDiscordStatus.Api
 
                 if (btn != null || dropDown != null)
                 {
+                    NetflixState.Init();
                     MyEventHandler.SendInitResult("Shareing Netflix State", true);
                 }
                 else
