@@ -1,4 +1,4 @@
-﻿using NetflixDiscordStatus.Api;
+using NetflixDiscordStatus.Api;
 using NetflixDiscordStatus.Misc;
 using NetflixDiscordStatus.Properties;
 using System;
@@ -8,6 +8,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,13 +25,35 @@ namespace NetflixDiscordStatus
             MyEventHandler.onUnexpectedError += onExpectedError;
         }
 
-
+        private static string currentVersion = "v1.0.2\n";
         private void main_Load(object sender, EventArgs e)
         {
+            CheckUpdate();
+
             Thread th = new Thread(Init);
             th.Start();
+        }
 
-            lblState.Text = "inistalize chrome";
+        private void CheckUpdate()
+        {
+            try
+            {
+                string version = new WebClient().DownloadString("https://raw.githubusercontent.com/lrnzcode/NetflixDiscordStatus/master/version");
+               
+                if (!currentVersion.Equals(version)) 
+                {
+                    DialogResult result = MessageBox.Show("NetflixDiscordStatus has a new update do you want to download the new version now?", "Update", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                    if (result == DialogResult.Yes)
+                    {
+                        Process.Start("https://github.com/lrnzcode/NetflixDiscordStatus/releases");
+                        Environment.Exit(0);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Update Check Failed");
+            }
         }
 
         private static bool IsProcessRunning(string name)
@@ -51,7 +74,7 @@ namespace NetflixDiscordStatus
             {
                 if (IsProcessRunning("chrome") || IsProcessRunning("chromedriver"))
                 {
-                    DialogResult result = MessageBox.Show("Google Chrome must be closed, should Google Chrome be closed now?", "Google Chrome is Running", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                    DialogResult result = MessageBox.Show("Google Chrome or the Chrome driver must be closed, should Chrome be closed now?", "Google Chrome is Running", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
                     if (result == DialogResult.Yes)
                     {
                         ShutdownDriver();
@@ -64,7 +87,7 @@ namespace NetflixDiscordStatus
                     }
                 }
 
-                Thread.Sleep(250);
+                Thread.Sleep(100);
                 Core.CheckNetflixPorifle();
             }));
         }
@@ -77,16 +100,11 @@ namespace NetflixDiscordStatus
 
                 if (success)
                 {
-                    if (Settings.Default.runInback)
-                    {
-                        this.Hide();
-                    }
-                    else
-                    {
-                        btnRetry.Hide();
-                        btnHide.Show();
-                        remeber.Show();
-                    }
+                    btnRetry.Hide();
+                    btnHide.Show();
+                    remeber.Show();
+
+                    if (Settings.Default.runInback) this.Hide();
 
                     NetflixState.Init();
                 }
@@ -185,7 +203,14 @@ namespace NetflixDiscordStatus
         {
             Settings.Default.runInback = false;
             Settings.Default.Save();
+            remeber.Show();
+            btnHide.Show();
             this.Show();
+        }
+
+        private void lblState_MouseHover(object sender, EventArgs e)
+        {
+            toolTip1.Show(lblState.Text, lblState);
         }
     }
 }
