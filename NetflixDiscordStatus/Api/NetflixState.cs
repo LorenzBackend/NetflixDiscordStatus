@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 
 namespace NetflixDiscordStatus.Api
 {
+    //NetflixDiscordStatus by LrnzCode
+    //https://github.com/lrnzcode/NetflixDiscordStatus
     public class NetflixState
     {
         private static DiscordRpcClient client;
@@ -28,7 +30,6 @@ namespace NetflixDiscordStatus.Api
             {
                 client = new DiscordRpcClient("ClientId");
                 client.Initialize();
-                SetBrowseState();
                 Thread th = new Thread(CheckForNewState);
                 th.Start();
             }
