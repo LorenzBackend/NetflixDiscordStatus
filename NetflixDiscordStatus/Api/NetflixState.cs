@@ -30,6 +30,8 @@ namespace NetflixDiscordStatus.Api
             {
                 client = new DiscordRpcClient("940447627282104330");
                 client.Initialize();
+                SetBrowseState();
+
                 Thread th = new Thread(CheckForNewState);
                 th.Start();
             }
