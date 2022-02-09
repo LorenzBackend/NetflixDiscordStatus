@@ -1,4 +1,4 @@
-﻿using NetflixDiscordStatus.Misc;
+using NetflixDiscordStatus.Misc;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Firefox;
@@ -33,6 +33,7 @@ namespace NetflixDiscordStatus.Api
                 driver.Navigate().GoToUrl("https://www.netflix.com/");
 
                 Thread.Sleep(250);
+
                 IWebElement btn = FindElementWhenExists(By.CssSelector(".addProfileIcon"));
                 IWebElement dropDown = FindElementWhenExists(By.CssSelector(".account-dropdown-button"));
 
@@ -59,14 +60,14 @@ namespace NetflixDiscordStatus.Api
         {
             try
             {
-
+                var elements = driver.FindElements(by);
+                return (elements.Count >= 1) ? elements.First() : null;
             }
             catch
             {
-
+                return null;
             }
-            var elements = driver.FindElements(by);
-            return (elements.Count >= 1) ? elements.First() : null;
+            
         }
 
         public static string GetTextFromElementByCssWait(string css)
