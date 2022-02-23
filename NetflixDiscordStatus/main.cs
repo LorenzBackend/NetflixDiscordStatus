@@ -16,13 +16,13 @@ using System.Windows.Forms;
 
 namespace NetflixDiscordStatus
 {
-    //NetflixDiscordStatus by LrnzCode
-    //https://github.com/lrnzcode/NetflixDiscordStatus
+    //NetflixDiscordStatus by LorenzBackend
+    //https://github.com/LorenzBackend/NetflixDiscordStatus
 
     public partial class main : Form
     {
-        private static string currentVersion = "v1.0.5\n";
-        public static string ReleasesUrl = "https://github.com/lrnzcode/NetflixDiscordStatus/releases";
+        private static string currentVersion = "v2.2.0\n";
+        public static string ReleasesUrl = "https://github.com/LorenzBackend/NetflixDiscordStatus/releases";
 
         public main()
         {
@@ -43,7 +43,8 @@ namespace NetflixDiscordStatus
         {
             try
             {
-                string version = new WebClient().DownloadString("https://raw.githubusercontent.com/lrnzcode/NetflixDiscordStatus/master/version");
+                WebClient client = new WebClient();
+                string version = client.DownloadString("https://raw.githubusercontent.com/LorenzBackend/NetflixDiscordStatus/master/version");
                
                 if (!currentVersion.Equals(version)) 
                 {
@@ -54,11 +55,13 @@ namespace NetflixDiscordStatus
                         Environment.Exit(0);
                     }
                 }
+
+                client.Dispose();
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Update Check Failed");
-            }
+            }       
         }
 
         private static bool IsProcessRunning(string name)
@@ -214,6 +217,16 @@ namespace NetflixDiscordStatus
         private void lblState_MouseHover(object sender, EventArgs e)
         {
             toolTip1.Show(lblState.Text, lblState);
+        }
+
+        private void label3_Click(object sender, EventArgs e)
+        {
+            Process.Start("https://github.com/LorenzBackend/NetflixDiscordStatus/issues");
+        }
+
+        private void notifyIcon1_Click(object sender, EventArgs e)
+        {
+            this.Show();
         }
     }
 }
