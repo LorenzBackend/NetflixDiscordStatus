@@ -5,18 +5,20 @@ using OpenQA.Selenium.Firefox;
 using OpenQA.Selenium.Support.UI;
 using System;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 
 namespace NetflixDiscordStatus.Api
 {
     public class Core
     {
-        //NetflixDiscordStatus by LrnzCode
-        //https://github.com/lrnzcode/NetflixDiscordStatus
+        //NetflixDiscordStatus by LorenzBackend
+        //https://github.com/LorenzBackend/NetflixDiscordStatus
 
         public static IWebDriver driver;
         private static WebDriverWait wait;
 
+        private static string firefoxProfilePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Mozilla\\Firefox\\Profiles\\5pqhihcu.default-release";
         public static void CheckNetflixPorifle()
         {
             try
@@ -35,9 +37,8 @@ namespace NetflixDiscordStatus.Api
                 wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
                 driver.Navigate().GoToUrl("https://www.netflix.com/");
 
-                Thread.Sleep(250);
-
-                IWebElement btn = FindElementWhenExists(By.CssSelector(".addProfileIcon"));
+                Thread.Sleep(500);
+                IWebElement btn = FindElementWhenExists(By.CssSelector(".profile-gate-label"));
                 IWebElement dropDown = FindElementWhenExists(By.CssSelector(".account-dropdown-button"));
 
                 if (btn != null || dropDown != null)
@@ -57,8 +58,16 @@ namespace NetflixDiscordStatus.Api
         }
 
         public static string GetUrl()
-        {
-            return driver.Url;
+        {        
+            if (driver != null)
+            {
+                return driver.Url;
+            }
+            else
+            {
+                return null;
+            }
+ 
         }
         public static IWebElement FindElementWhenExists(By by)
         {
