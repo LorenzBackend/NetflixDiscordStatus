@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace NetflixDiscordStatus.Misc
 {
+    //NetflixDiscordStatus by LorenzBackend
+    //https://github.com/LorenzBackend/NetflixDiscordStatus
     public class MyEventHandler
     {
         public delegate void InitResultEvent(string message, bool success);
