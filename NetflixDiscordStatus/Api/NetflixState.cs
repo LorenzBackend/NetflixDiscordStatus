@@ -16,7 +16,6 @@ namespace NetflixDiscordStatus.Api
     public class NetflixState
     {
         private static DiscordRpcClient client;
-        private static DiscordRpcClient client2;
 
         private static string[] states = { "Browse the Netflix world" };
         private static RpcState currentState;
@@ -34,7 +33,7 @@ namespace NetflixDiscordStatus.Api
             try
             {
                 currentState = RpcState.None;
-                client = new DiscordRpcClient("940447627282104330");
+                client = new DiscordRpcClient("DiscordClient");
                 client.Initialize();
                 SetBrowseState();
 
@@ -84,9 +83,9 @@ namespace NetflixDiscordStatus.Api
             {
                 Thread.Sleep(250);
 
-                IWebElement sTitle = Core.FindElementWhenExists(By.CssSelector("#appMountPoint > div > div > div.watch-video > div > div > div.ltr-1420x7p > div.watch-video--bottom-controls-container.ltr-hpbgml > div > div > div.ltr-1bt0omd > div > div.ltr-1fkysoc > div.medium.ltr-qnht66 > h4"));
-                IWebElement subTitle = Core.FindElementWhenExists(By.CssSelector("div > div.watch-video--bottom-controls-container.ltr-hpbgml > div > div > div.ltr-1bt0omd > div > div.ltr-1fkysoc > div.medium.ltr-qnht66 > span:nth-child(2)"));
-                IWebElement movieTitle = Core.FindElementWhenExists(By.CssSelector("#appMountPoint > div > div > div.watch-video > div > div > div.ltr-1420x7p > div.watch-video--bottom-controls-container.ltr-hpbgml > div > div > div.ltr-1bt0omd > div > div.ltr-1fkysoc > div.medium.ltr-qnht66"));
+                IWebElement sTitle = Core.FindElementWhenExists(By.CssSelector("h4:nth-child(1)"));
+                IWebElement subTitle = Core.FindElementWhenExists(By.CssSelector(".medium > span:nth-child(2)"));
+                IWebElement movieTitle = Core.FindElementWhenExists(By.CssSelector(".ltr-weehum-videoTitleCss"));
 
                 if (sTitle == null && subTitle == null && movieTitle == null)
                 {
