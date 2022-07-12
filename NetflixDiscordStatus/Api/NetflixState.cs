@@ -146,8 +146,7 @@ namespace NetflixDiscordStatus.Api
  
         public static void UpdateState(string detail, string state)
         {
-            if (currentState == RpcState.Movie && state == currentMovie) return;
-            if (currentState == RpcState.Series && state == currentMovie) return;
+            if (currentState == RpcState.Movie && state == currentMovie || currentState == RpcState.Series && state == currentMovie) return;
 
             if (currentState == RpcState.Movie) currentMovie = detail;
             if (currentState == RpcState.Series) currentMovie = state;
